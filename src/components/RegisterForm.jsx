@@ -49,6 +49,10 @@ function RegisterForm(){
             } else if (response.status === 409) {
                 setIsError(true);
                 setMessage("Rejestracja nieudana - podany adres email jest już zajęty.");
+            } else if (response.status === 400) {
+                            const errorMsg = await response.text();
+                            setIsError(true);
+                            setMessage("Błąd walidacji: " + errorMsg);
             } else {
                 console.error("Odrzucono. kod błędu:", response.status);
                 setIsError(true);
