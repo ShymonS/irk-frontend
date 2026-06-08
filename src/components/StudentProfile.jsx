@@ -35,9 +35,15 @@ function StudentProfile() {
                     const appsData = await appRes.json();
                     setMyApplications(appsData);
 
-                    if (appsData.length > 0 && appsData[0].documents) {
-                        setDocuments(appsData[0].documents);
-                    }
+                    // NAPRAWA: Zbieramy dokumenty ze WSZYSTKICH aplikacji studenta
+                    // i dodajemy informację o nazwie kierunku, do którego należą
+                    const allDocuments = appsData.flatMap(app =>
+                        (app.documents || []).map(doc => ({
+                            ...doc,
+                            courseName: app.recruitment?.course?.name || 'Aplikacja'
+                        }))
+                    );
+                    setDocuments(allDocuments);
                 }
 
                 const resultsRes = await fetch('http://localhost:8081/api/results/my', {
@@ -113,7 +119,7 @@ function StudentProfile() {
                     </div>
                 </div>
 
-                {/* SEKCJA 2: MOJE ZGŁOSZENIA (Zintegrowana i Naprawiona) */}
+                {/* SEKCJA 2: MOJE ZGŁOSZENIA */}
                 <div className="profile-section">
                     <h2 className="section-title text-blue">📝 Moje Zgłoszenia</h2>
                     {myApplications.length === 0 ? (
@@ -134,7 +140,7 @@ function StudentProfile() {
                                     {myApplications.map(app => (
                                         <tr key={app.id}>
                                             <td className="text-bold">#{app.id}</td>
-                                            <td>{app.recruitment?.name + ' - ' + app.recruitment?.course?.name || 'N/A'}</td>
+                                            <td>{app.recruitment?.name + ' - ' + (app.recruitment?.course?.name || 'N/A')}</td>
                                             <td className="text-muted">
                                                 {new Date(app.createdAt).toLocaleString('pl-PL')}
                                             </td>
@@ -217,14 +223,20 @@ function StudentProfile() {
                             <table className="profile-table">
                                 <thead>
                                     <tr>
-                                        <th>Typ dokumentu</th>
-                                        <th style={{ textAlign: 'center' }}>Status</th>
+                                        <th>Wymagany dokument</th>
+                                        <th style={{ textAlign: 'center' }}>Status w systemie</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {documents.map(doc => (
                                         <tr key={doc.id}>
-                                            <td style={{ fontWeight: '500', color: '#333' }}>{doc.name}</td>
+                                            {/* NAPRAWA: użyliśmy documentName zamiast name */}
+                                            <td style={{ fontWeight: '500', color: '#333' }}>
+                                                {doc.documentName}
+                                                <div style={{ fontSize: '11px', color: '#8c8c8c', marginTop: '2px' }}>
+                                                    Dotyczy: {doc.courseName}
+                                                </div>
+                                            </td>
                                             <td style={{ textAlign: 'center' }}>
                                                 <span className={`badge-status ${doc.status === 'Dostarczone' ? 'status-delivered' : 'status-missing'}`}>
                                                     {doc.status}

@@ -24,6 +24,15 @@ function CandidatesList() {
 
                     setApplications(sortedData);
 
+                    // Pobieramy dokumenty dla każdej aplikacji
+                    const docsMap = {};
+                    sortedData.forEach(app => {
+                        if (app.documents) {
+                            docsMap[app.id] = app.documents;
+                        }
+                    });
+                    setDocuments(docsMap);
+
                     if(sortedData.length > 0 && sortedData[0].recruitment) {
                         setRecruitmentName(sortedData[0].recruitment.name);
                     } else {
@@ -57,7 +66,7 @@ function CandidatesList() {
             if (response.ok) {
                 setDocuments(prev => ({
                     ...prev,
-                    [appId]: prev[appId].map(doc => doc.id === docId ? { ...doc, documentStatus: newStatus } : doc)
+                    [appId]: prev[appId].map(doc => doc.id === docId ? { ...doc, status: newStatus } : doc)
                 }));
 
                 setSelectedApp(prev => {
@@ -78,7 +87,7 @@ function CandidatesList() {
     const getGeneralDocumentsStatus = (appId) => {
         const docs = documents[appId];
         if (!docs || docs.length === 0) return "Brak";
-        const allDelivered = docs.every(doc => doc.documentStatus === "Dostarczone");
+        const allDelivered = docs.every(doc => doc.status === "Dostarczone");
         return allDelivered ? "Dostarczone" : "Niedostarczone";
     };
 
@@ -259,7 +268,7 @@ function CandidatesList() {
                     }}>
                         {/* Nagłówek modala */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f0f0f0', paddingBottom: '15px', marginBottom: '20px' }}>
-                            <h2 style={{ margin: 0, color: '#333' }}>📋 {selectedApp.id} - {selectedApp.candidate.firstName} {selectedApp.candidate.lastName}</h2>
+                            <h2 style={{ margin: 0, color: '#333' }}>📋{selectedApp.candidate.firstName} {selectedApp.candidate.lastName}</h2>
                             <button
                                 onClick={() => setSelectedApp(null)}
                                 style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: '#999' }}
@@ -290,16 +299,17 @@ function CandidatesList() {
                                         <tr key={doc.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                                             <td style={{ padding: '12px 10px', fontSize: '13px', fontWeight: '500' }}>{doc.documentName}</td>
                                             <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                                                {/* NAPRAWA: Zmieniono doc.documentStatus na doc.status */}
                                                 <select
-                                                    value={doc.documentStatus}
+                                                    value={doc.status || "Niedostarczone"}
                                                     onChange={(e) => handleDocumentStatusChange(selectedApp.id, doc.id, e.target.value)}
                                                     style={{
                                                         padding: '6px',
                                                         borderRadius: '4px',
                                                         fontWeight: '600',
                                                         border: '1px solid #d9d9d9',
-                                                        backgroundColor: doc.documentStatus === 'Dostarczone' ? '#f6ffed' : '#fff1f0',
-                                                        color: doc.documentStatus === 'Dostarczone' ? '#52c41a' : '#ff4d4f',
+                                                        backgroundColor: doc.status === 'Dostarczone' ? '#f6ffed' : '#fff1f0',
+                                                        color: doc.status === 'Dostarczone' ? '#52c41a' : '#ff4d4f',
                                                         cursor: 'pointer'
                                                     }}
                                                 >
